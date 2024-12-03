@@ -15,3 +15,7 @@ Torrents that contain files with extensions in the "Forbidden" list will automat
 Torrents that contain files in the "unwanted" list will have those specific files flagged to Skip, but the torrent will be left alone.  This is to disable unwanted artwork, text files, etc that may come along with a torrent.
 
 The script will check deluge every 60s to apply changes.
+
+# THanks
+
+Thanks to https://github.com/dcquence/deluge_exclude_files for getting this started!
