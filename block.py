@@ -23,6 +23,8 @@ print("Scanning..")
 print(" -> %i forbidden extensions" % len(forbidden_extensions))
 print(" -> %i unwanted extensions" % len(unwanted_extensions))
 
+dCache = []  # Cache of torrents we've evaluated..
+
 
 # Function to check for forbidden files and remove the torrent
 def check_and_remove_torrents():
@@ -35,6 +37,10 @@ def check_and_remove_torrents():
         torrent_name = torrent_data.get(b"name", b"Unknown Name").decode(
             "utf-8", errors="ignore"
         )
+        if torrent_name in dCache:
+            continue
+        else:
+            dCache.append(torrent_name)
         files = torrent_data.get(b"files", [])
         file_priorities = torrent_data.get(b"file_priorities", [])
         print(f"Validating {torrent_name}")
@@ -88,5 +94,6 @@ def check_and_remove_torrents():
 # Run the function
 
 while 1:
+    print("==> Beginning check [%s]..." % time.strftime("%Y-%m-%d %H:%M:%S"))
     check_and_remove_torrents()
     time.sleep(60)
