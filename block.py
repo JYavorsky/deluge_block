@@ -42,9 +42,9 @@ client = DelugeRPCClient(
 forbidden_extensions = config["lists"]["forbidden"].split(",")
 unwanted_extensions = config["lists"]["unwanted"].split(",")
 
-print("Scanning..")
-print(" -> %i forbidden extensions" % len(forbidden_extensions))
-print(" -> %i unwanted extensions" % len(unwanted_extensions))
+log.info("Scanning..")
+log.info(" -> %i forbidden extensions" % len(forbidden_extensions))
+log.info(" -> %i unwanted extensions" % len(unwanted_extensions))
 
 dCache = []  # Cache of torrents we've evaluated..
 
@@ -65,13 +65,11 @@ def check_and_remove_torrents():
             dCache.append(torrent_name)
         files = torrent_data.get(b"files", [])
         file_priorities = torrent_data.get(b"file_priorities", [])
-        print(f"Validating {torrent_name}")
+        log.info(f"Validating {torrent_name}")
 
         # If no files are listed, skip this torrent
         if not files:
-            print(
-                f"No files found for torrent '{torrent_name}' (ID: {torrent_id}), skipping."
-            )
+            log.info(f"No files found for torrent '{torrent_name}' (ID: {torrent_id}), skipping.")
             continue
 
         # Check each file in the torrent for unwanted extensions
@@ -82,7 +80,7 @@ def check_and_remove_torrents():
             file_name = file_info.get(b"path", b"").decode("utf-8", errors="ignore")
             if file_priority > 0:
                 if any(file_name.endswith(ext) for ext in unwanted_extensions):
-                    print(f"-> Skipping {file_name}")
+                    log.info(f"-> Skipping {file_name}")
                     priorities.append(0)  # skip
                 else:
                     priorities.append(file_priority)
@@ -96,9 +94,7 @@ def check_and_remove_torrents():
                 break
 
         if forbidden:
-            print(
-                f"Removing torrent '{torrent_name}' due to forbidden file '{forbidden_filename}'"
-            )
+            log.info(f"Removing torrent '{torrent_name}' due to forbidden file '{forbidden_filename}'")
             # Remove the torrent
             client.call(
                 "core.remove_torrent",
@@ -114,7 +110,7 @@ def check_and_remove_torrents():
 
 # Run the function
 while running:
-    print("==> Beginning check [%s]..." % time.strftime("%Y-%m-%d %H:%M:%S"))
+    log.info("==> Beginning check...")
     check_and_remove_torrents()
     time.sleep(60)
     
