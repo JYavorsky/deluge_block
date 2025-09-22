@@ -2,6 +2,17 @@ from deluge_client import DelugeRPCClient
 import time
 import configparser
 
+import sys
+import signal
+
+running = True
+
+def handle_sigterm(signum, frame):
+    global running
+    running = False
+
+signal.signal(signal.SIGTERM, handle_sigterm)
+signal.signal(signal.SIGINT, handle_sigterm)
 
 config = configparser.ConfigParser()
 config.read("/app/config.ini")
@@ -14,7 +25,6 @@ client = DelugeRPCClient(
     config["login"]["password"],
 )
 
-
 # Specify the forbidden file extensions
 forbidden_extensions = config["lists"]["forbidden"].split(",")
 unwanted_extensions = config["lists"]["unwanted"].split(",")
@@ -24,7 +34,6 @@ print(" -> %i forbidden extensions" % len(forbidden_extensions))
 print(" -> %i unwanted extensions" % len(unwanted_extensions))
 
 dCache = []  # Cache of torrents we've evaluated..
-
 
 # Function to check for forbidden files and remove the torrent
 def check_and_remove_torrents():
@@ -90,10 +99,10 @@ def check_and_remove_torrents():
                 {"file_priorities": priorities},
             )
 
-
 # Run the function
-
-while 1:
+while running:
     print("==> Beginning check [%s]..." % time.strftime("%Y-%m-%d %H:%M:%S"))
     check_and_remove_torrents()
     time.sleep(60)
+
+sys.exit(0)
