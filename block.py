@@ -4,7 +4,7 @@ import configparser
 
 
 config = configparser.ConfigParser()
-config.read("config.ini")
+config.read("/app/config.ini")
 
 # Connect to Deluge
 client = DelugeRPCClient(
