@@ -2,13 +2,13 @@
 FROM python:3.11.13
 
 # Set the working directory
-WORKDIR /app
+WORKDIR /usr/src/app
 
 # Copy your Python script into the container
-COPY ./block.py /app
+COPY ./block.py .
 
 # Install the deluge-client package
 RUN pip install --no-cache-dir deluge-client
 
 # Run the Python script
-CMD ["python", "/app/block.py"]
+CMD ["python", "./block.py"]
