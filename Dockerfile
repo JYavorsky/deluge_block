@@ -11,4 +11,4 @@ COPY block.py /app/
 RUN pip install --no-cache-dir deluge-client
 
 # Run the Python script
-CMD ["python", "block.py"]
+CMD ["python", "/app/block.py"]
