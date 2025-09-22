@@ -4,11 +4,24 @@ import configparser
 
 import sys
 import signal
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.StreamHandler(sys.stdout)  # send logs to stdout
+    ]
+)
+
+log = logging.getLogger(__name__)
 
 running = True
 
 def handle_sigterm(signum, frame):
     global running
+    log.info("Received SIGTERM, shutting down...")
     running = False
 
 signal.signal(signal.SIGTERM, handle_sigterm)
@@ -104,5 +117,6 @@ while running:
     print("==> Beginning check [%s]..." % time.strftime("%Y-%m-%d %H:%M:%S"))
     check_and_remove_torrents()
     time.sleep(60)
-
+    
+log.info("Exited cleanly")
 sys.exit(0)
