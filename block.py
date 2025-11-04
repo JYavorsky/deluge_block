@@ -58,6 +58,7 @@ class DelugeWatchdogService:
         # Optional rotating file handler
         if self.config.getboolean("logging", "enabled"):
             log_file = self.config.get("logging", "file")
+            log_path = Path(log_file)
             max_bytes = self.config.getint("logging", "max_bytes")
             backup_count = self.config.getint("logging", "backup_count")
 
