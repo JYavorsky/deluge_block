@@ -58,7 +58,6 @@ class DelugeWatchdogService:
         # Optional rotating file handler
         if self.config.getboolean("logging", "enabled"):
             log_file = self.config.get("logging", "file")
-            log_path = Path(log_file)
             max_bytes = self.config.getint("logging", "max_bytes")
             backup_count = self.config.getint("logging", "backup_count")
 
@@ -67,7 +66,7 @@ class DelugeWatchdogService:
             fh.setFormatter(logging.Formatter("[%(asctime)s] [%(levelname)s] %(message)s"))
             logger.addHandler(fh)
             logger.info(
-                f"File logging enabled -> {log_path} (max {max_bytes/1024/1024:.1f} MB x {backup_count})"
+                f"File logging enabled -> {log_file} (max {max_bytes/1024/1024:.1f} MB x {backup_count})"
             )
         else:
             logger.info("File logging disabled; console output only.")
