@@ -219,6 +219,7 @@ class DelugeWatchdogService:
 
             # Check connection every 5 minutes
             if time.time() - last_connection_check >= 300:
+                self.logger.info("Performing scheduled connection health check (5 min interval)")
                 self.check_connection()
                 last_connection_check = time.time()
 
