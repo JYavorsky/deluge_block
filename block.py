@@ -103,6 +103,8 @@ class DelugeWatchdogService:
         """Verify Deluge connection, reconnect if needed."""
         try:
             self.client.call("daemon.info")
+            version = info.get(b"version", b"Unknown Version").decode("utf-8", errors="ignore")
+            self.logger.info(f"Connected to Deluge daemon (version: {version})")
             return True
         except Exception:
             self.logger.warning("Connection lost. Attempting to reconnect...")
@@ -202,6 +204,10 @@ class DelugeWatchdogService:
         self.logger.info(f"Loaded {len(forbidden_extensions)} forbidden extensions")
         self.logger.info(f"Loaded {len(unwanted_extensions)} unwanted extensions")
 
+        # Read timing values from config.ini
+        check_interval = self.config.getint("timing", "torrent_check_interval")
+        connection_interval = self.config.getint("timing", "connection_check_interval")
+
         # Initial connect with retries (exits on failure)
         if not self.connect_to_deluge():
             self.logger.error("Unable to connect to Deluge daemon. Exiting.")
@@ -219,7 +225,7 @@ class DelugeWatchdogService:
 
             # Check connection every 5 minutes
             if time.time() - last_connection_check >= 300:
-                self.logger.info("Performing scheduled connection health check (5 min interval)")
+                self.logger.info("Performing scheduled connection health check")
                 self.check_connection()
                 last_connection_check = time.time()
 
