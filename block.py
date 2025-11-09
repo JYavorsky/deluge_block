@@ -94,9 +94,7 @@ class DelugeWatchdogService:
                     self.logger.info(f"Retrying in {delay}s...")
                     time.sleep(delay)
                 else:
-                    self.logger.critical(
-                        "Max connection retries reached. Exiting to trigger Docker restart."
-                    )
+                    self.logger.critical("Max connection retries reached. Exiting to trigger Docker restart.")
                     sys.exit(1)
 
     def check_connection(self):
@@ -124,19 +122,18 @@ class DelugeWatchdogService:
     def check_and_remove_torrents(self, forbidden_extensions, unwanted_extensions):
         """Scans torrents and removes/adjusts based on file rules."""
         try:
-            torrents = self.client.call(
-                "core.get_torrents_status", {}, [b"name", b"files", b"file_priorities"]
-            )
+            torrents = self.client.call("core.get_torrents_status", {}, [b"name", b"files", b"file_priorities"])
         except Exception as e:
             self.logger.error(f"Failed to fetch torrent list: {e}")
             return
 
         for torrent_id, torrent_data in torrents.items():
             torrent_name = torrent_data.get(b"name", b"Unknown Name").decode("utf-8", errors="ignore")
+            tid = torrent_id.decode("utf-8", errors="ignore")
 
-            if torrent_name in self.dcache:
+            if tid in self.dcache:
                 continue
-            self.dcache.append(torrent_name)
+            self.dcache.append(tid)
 
             self.logger.info(f"Validating '{torrent_name}'")
 
@@ -173,18 +170,12 @@ class DelugeWatchdogService:
             # Take action
             try:
                 if forbidden:
-                    self.logger.warning(
-                        f"Removing '{torrent_name}' due to forbidden file '{forbidden_filename}'"
-                    )
-                    self.client.call(
-                        "core.remove_torrent", torrent_id.decode("utf-8", errors="ignore"), True
-                    )
+                    self.logger.warning(f"Removing '{torrent_name}' due to forbidden file '{forbidden_filename}'")
+                    self.client.call("core.remove_torrent", tid, True)
+                    if tid in self.dcache:
+                        self.dcache.remove(tid)
                 else:
-                    self.client.call(
-                        "core.set_torrent_options",
-                        torrent_id.decode("utf-8", errors="ignore"),
-                        {"file_priorities": priorities},
-                    )
+                    self.client.call("core.set_torrent_options", tid, {"file_priorities": priorities})
             except Exception as e:
                 self.logger.error(f"Error processing '{torrent_name}': {e}")
 
@@ -193,12 +184,8 @@ class DelugeWatchdogService:
     # ----------------------------------------------------------
     def run(self):
         """Main monitoring loop."""
-        forbidden_extensions = [
-            ext.strip() for ext in self.config["lists"]["forbidden"].split(",") if ext.strip()
-        ]
-        unwanted_extensions = [
-            ext.strip() for ext in self.config["lists"]["unwanted"].split(",") if ext.strip()
-        ]
+        forbidden_extensions = [ext.strip() for ext in self.config["lists"]["forbidden"].split(",") if ext.strip()]
+        unwanted_extensions = [ext.strip() for ext in self.config["lists"]["unwanted"].split(",") if ext.strip()]
 
         self.logger.info("Starting Deluge check service...")
         self.logger.info(f"Loaded {len(forbidden_extensions)} forbidden extensions")
@@ -224,13 +211,13 @@ class DelugeWatchdogService:
                 self.logger.exception(f"Unhandled error during torrent check: {e}")
 
             # Check connection every 5 minutes
-            if time.time() - last_connection_check >= 300:
+            if time.time() - last_connection_check >= connection_interval:
                 self.logger.info("Performing scheduled connection health check")
                 self.check_connection()
                 last_connection_check = time.time()
 
             # Sleep 60 seconds, exit early if stopped
-            for _ in range(60):
+            for _ in range(check_interval):
                 if not self.running:
                     break
                 time.sleep(1)
