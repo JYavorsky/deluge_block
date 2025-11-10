@@ -100,8 +100,7 @@ class DelugeWatchdogService:
     def check_connection(self):
         """Verify Deluge connection, reconnect if needed."""
         try:
-            self.client.call("daemon.info")
-            version = info.get(b"version", b"Unknown Version").decode("utf-8", errors="ignore")
+            version = self.client.call("daemon.info").decode("utf-8", errors="ignore")
             self.logger.info(f"Connected to Deluge daemon (version: {version})")
             return True
         except Exception:
